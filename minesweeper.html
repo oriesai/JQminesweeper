@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+*{
+	padding: 0;
+	margin: 0 auto;
+	text-align: center;
+	vertical-align: center;
+	/*border: 1px solid red;*/
+}
+body{
+	height: 800px;
+	width: 1000px;
+}
+
+table tr td{
+	border: 3px solid grey;
+}
+table{
+	border-collapse:collapse;
+	cursor:pointer;
+}
+.title{
+	font-size: 30px;
+	font-weight: bold;
+
+}
+#start{
+	margin: 5px;
+	width: 100px;
+	height: 40px;
+	background-color: #aaf;
+}
+td{
+	height: 35px;
+	width: 35px;
+	text-align: center;
+	font-weight: bold;
+	font-size: 23px;
+}
+.explode{
+	background-color: #f00;
+
+}
+.safe{
+	background-color: #ddd;
+}
+	</style>
+	<script src='./jquery.min.js'></script>
+	<script>
+$(function(){
+// var : number of tr, number of td, create tr and td 
+// var bomb number, fixed set to 2
+// var: bomb,if click bomb, gameover, background turn red. bomb position(tr index j, td index) is random, add id as bomb
+// var number, relative to bomb, see bomb surrounding, number value+1(upper tr index i,i-1,i+1; current tr i-1, i+1; next tr i,i+1,i-1),  get td html value and add 1
+$('#start').click(function(){
+	/////////////////
+	//reset stats //
+	/////////////////
+	//clear table and h1, and pointer able
+	$('h1').empty();
+	$('table').empty().css('pointer-events','');
+	$('.score').html(0);
+	var score=$('.score').html();
+//////////////////////
+//set map size here //
+//////////////////////
+var i=20;
+//////////////////////////
+// set bomb number here //
+//////////////////////////
+var bomb =50; 
+
+	var tr=Math.ceil(Math.random()*i+5);
+	var td=Math.ceil(Math.random()*i+5);
+	var row='<tr></tr>';
+	var cell='<td value="0"></td>';
+	for (var i = 1; i <= tr; i++) {
+	$('table').append(row);
+			for(var j =1;j<=td;j++){
+				//as index starts from 0, tr need to -1
+				$('table tbody').children().eq(i-1).append(cell);
+			}
+	}
+	//append class=bomb into random td
+	for (var k = 1;k<=bomb;k++) {
+	$('table tbody').children().eq(Math.random()*tr).children().eq(Math.random()*td).addClass('bomb');
+	}
+	//add number to bomb surroundings
+	//// var number, relative to bomb, see bomb surrounding, number value+1(upper tr index i,i-1,i+1; current tr i-1, i+1; next tr i,i+1,i-1),  get td html value and add 1
+	//get bomb object collection, use each to traversate each object
+	var bombs= $('td.bomb');
+	$.each(bombs,function(k,v){
+		//get index of bomb
+	var bomb_index =$(v).index();
+	//get td attribute value and add 1, 
+	//top cells
+	var topi = $(v).parent().prev().children().eq(bomb_index).attr('value');
+		topi =Number(topi)+1;
+		$(v).parent().prev().children().eq(bomb_index).attr('value',topi);
+
+	var topin = $(v).parent().prev().children().eq(bomb_index-1).attr('value');
+		topin =Number(topin)+1;
+		$(v).parent().prev().children().eq(bomb_index-1).attr('value',topin);
+
+	var topib = $(v).parent().prev().children().eq(bomb_index+1).attr('value');
+		topib =Number(topib)+1;
+		$(v).parent().prev().children().eq(bomb_index+1).attr('value',topib);	
+	//middle cells
+	var middleib = $(v).prev().attr('value');
+		middleib =Number(middleib)+1;
+		$(v).prev().attr('value',middleib);
+
+	var middlein = $(v).next().attr('value');
+		middlein =Number(middlein)+1;
+		$(v).next().attr('value',middlein);
+	//bottom cells
+	var bottomi = $(v).parent().next().children().eq(bomb_index).attr('value');
+		bottomi =Number(bottomi)+1;
+		$(v).parent().next().children().eq(bomb_index).attr('value',bottomi);
+
+	var bottomin = $(v).parent().next().children().eq(bomb_index-1).attr('value');
+		bottomin =Number(bottomin)+1;
+		$(v).parent().next().children().eq(bomb_index-1).attr('value',bottomin);
+
+	var bottomib = $(v).parent().next().children().eq(bomb_index+1).attr('value');
+		bottomib =Number(bottomib)+1;
+		$(v).parent().next().children().eq(bomb_index+1).attr('value',bottomib);	
+	})
+
+	//on mouse click td, show value/bomb
+	$('td').click(function(){
+		//prevent reapeat clicking
+		$(this).css('pointer-events','none');
+		//if not bomb, give value, if attr value==0, give safe style,
+		if($(this).attr('class')=="bomb"){
+			//set pointer event non to disable bomb turning to other stuff
+			alert('bomb!!!!');
+			$(this).addClass('explode');
+			$('table').css('pointer-events','none');
+			$('table').next().html('GAME OVER');
+			if(score>$('.highscore').html()){
+				alert('you beat the highest score! You are THE BOMB!');
+				$('.highscore').html(score);
+			}
+		}else if($(this).attr('value')==0){
+			$(this).addClass('safe');
+			score =Number(score) +20;
+			$('.score').html(score);
+
+			//when pressed safe,check surrounding values, if the surrounding have more then 4 safe(value=0), expose all the safe zone
+		}else{
+		//get value from attribute
+		var value= $(this).attr('value');
+		$(this).html(value).css('background-color','pink');
+			score =Number(score) + 25;
+			$('.score').html(score);
+		}
+	})
+});
+})
+	</script>
+</head>
+<body>
+<p class='title'> Mine Sweeper </p>
+<input type="button" id='start' value='start/restart'>&nbsp;&nbsp;&nbsp;&nbsp;Score:<span class='score'>0</span>
+&nbsp;&nbsp;&nbsp;&nbsp; Highest Score:<span class='highscore'>0</span>
+	<table></table>
+	<h1></h1>
+</body>
+</html>
